@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Happy Birthday to My Little Angel</title>
+  
+  <!-- Thêm font Dancing Script -->
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #000000;
+      --heart: #ff62b0;
+      --heart-glow: #ffb6d9;
+      --min-size: 10;
+      --max-size: 28;
+      --min-dur: 6;
+      --max-dur: 14;
+      --spawn-every: 150;
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      overflow: hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .grain {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      opacity: .05;
+      mix-blend-mode: screen;
+      background-image: radial-gradient(#fff 0.7px, transparent 0.7px);
+      background-size: 2px 2px;
+    }
+
+    .heart {
+      position: fixed;
+      top: -60px;
+      pointer-events: none;
+      width: 24px; height: 24px;
+      transform: translate3d(0, -100px, 0);
+      will-change: transform, opacity;
+      filter: drop-shadow(0 0 6px var(--heart-glow));
+      animation: fall linear forwards, sway ease-in-out infinite, spin linear infinite;
+    }
+
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: var(--heart);
+      border-radius: 50% 50% 0 50%;
+    }
+    .heart::before {
+      transform: rotate(45deg);
+      transform-origin: 50% 60%;
+    }
+    .heart::after {
+      transform: rotate(-45deg);
+      transform-origin: 50% 60%;
+    }
+
+    @keyframes fall {
+      0% { transform: translate3d(var(--x, 0), -10vh, 0) scale(var(--scale)) rotate(0deg); opacity: 0; }
+      5% { opacity: 1; }
+      100% { transform: translate3d(var(--x, 0), 110vh, 0) scale(var(--scale)) rotate(360deg); opacity: 0.9; }
+    }
+
+    @keyframes sway {
+      0%   { margin-left: -20px; }
+      50%  { margin-left: 20px; }
+      100% { margin-left: -20px; }
+    }
+
+    @keyframes spin {
+      from { filter: drop-shadow(0 0 4px var(--heart-glow)); }
+      to   { filter: drop-shadow(0 0 10px var(--heart-glow)); }
+    }
+
+    /* Frame for running sentences */
+    .sentence-frame {
+      position: fixed;
+      top: 50%;
+      width: 100%;
+      text-align: center;
+      font-size: 4em;
+      color: #ffbadc;
+      text-shadow: 0 0 10px #ff62b0;
+      white-space: pre;
+      overflow: hidden;
+      font-family: 'Dancing Script', cursive; /* dùng Dancing Script */
+    }
+
+    .sentence-frame span {
+      display: inline-block;
+      opacity: 0;
+      animation: fadeIn 0.6s forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    audio {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="sentence-frame" id="sentence-frame"></div>
+
+  <audio controls autoplay>
+    <source src="noinaycoanh.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    (function(){
+      const root = getComputedStyle(document.documentElement);
+      const MIN_SIZE = parseFloat(root.getPropertyValue('--min-size')) || 10;
+      const MAX_SIZE = parseFloat(root.getPropertyValue('--max-size')) || 28;
+      const MIN_DUR  = parseFloat(root.getPropertyValue('--min-dur'))  || 6;
+      const MAX_DUR  = parseFloat(root.getPropertyValue('--max-dur'))  || 14;
+      const INTERVAL = parseFloat(root.getPropertyValue('--spawn-every')) || 90;
+
+      const rand = (min, max) => Math.random() * (max - min) + min;
+
+      function makeHeart(x = rand(0, window.innerWidth), sizePx = rand(MIN_SIZE, MAX_SIZE)){
+        const d = document.createElement('div');
+        d.className = 'heart';
+        const scale = sizePx / 24;
+        const dur = rand(MIN_DUR, MAX_DUR);
+        const swayDur = rand(2, 5);
+
+        d.style.left = `${x}px`;
+        d.style.setProperty('--x', '0px');
+        d.style.setProperty('--scale', scale);
+        d.style.animationDuration = `${dur}s, ${swayDur}s, ${rand(6,12)}s`;
+        d.style.opacity = 0;
+        d.style.rotate = `${rand(-15, 15)}deg`;
+        d.addEventListener('animationend', () => d.remove());
+        document.body.appendChild(d);
+        return d;
+      }
+
+      let spawn = setInterval(() => { makeHeart(); }, INTERVAL);
+    })();
+
+    // Running sentences logic
+    const sentences = [
+      "Hello dear!", 
+      "HAPPY BIRTHDAY",
+      "It's been a pleasure to have you by my side.", 
+      "I feel thankful!",
+      "I hope that",
+      "Health", "Strength", "and most importantly,", "Happiness", 
+      "will follow you, my dear.",
+      "Today, you turn one year older,", 
+      "but don't be sad", 
+      "our marriage is one year closer.",
+      "I LOVE YOU <3"
+    ];
+    const frame = document.getElementById('sentence-frame');
+
+    let index = 0;
+    function showSentence(){
+      frame.innerHTML = '';
+      const text = sentences[index];
+      let i = 0;
+
+      function type(){
+        if (i < text.length){
+          const span = document.createElement('span');
+          span.textContent = text[i];
+          frame.appendChild(span);
+          i++;
+          setTimeout(type, 80);
+        } else {
+          setTimeout(hideSentence, 1000);
+        }
+      }
+
+      function hideSentence(){
+        if (index < sentences.length-1){
+          frame.innerHTML = '';
+          index ++;
+          setTimeout(showSentence, 400);
+        }
+      }
+
+      type();
+    }
+
+    showSentence();
+  </script>
+</body>
+</html>
